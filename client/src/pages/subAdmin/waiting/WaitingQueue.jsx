@@ -180,7 +180,7 @@ function WaitingQueue() {
                     <small>{item.customer_name}</small>
                   </div>
 
-                  <span className="badge bg-warning">
+                  <span className="text">
                     {item.status}
                   </span>
                 </div>
@@ -258,14 +258,14 @@ function WaitingQueue() {
                 onChange={handleChange}
               />
 
-              <input
+              {/* <input
                 className="form-control mb-3"
                 placeholder="Wait Time"
                 type="number"
                 name="wait"
                 value={formData.wait}
                 onChange={handleChange}
-              />
+              /> */}
 
               <textarea
                 className="form-control"

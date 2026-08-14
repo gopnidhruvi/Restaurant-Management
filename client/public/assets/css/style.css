@@ -842,3 +842,180 @@
 .bg-blue{
   background: linear-gradient( #0f172a, #1e293b, #111827);
 }
+
+
+
+
+
+
+.kds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.kds-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: 0.2s;
+}
+
+/* .kds-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+} */
+
+/* Top */
+
+.kds-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.kds-table {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.kds-order-number {
+  font-size: 11px;
+  color: #777;
+  background: #f4f4f4;
+  padding: 6px 8px;
+  border-radius: 5px;
+  max-width: 125px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kds-time {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+}
+
+/* Customer */
+
+.kds-customer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  padding: 11px 0;
+  margin-bottom: 4px;
+}
+
+.kds-guests {
+  font-size: 13px;
+  color: #777;
+}
+
+/* Items */
+
+.kds-items {
+  margin-top: 4px;
+}
+
+.kds-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 3px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.kds-qty {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.veg-icon {
+  color: #159447;
+  border: 1px solid #159447;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+}
+
+/* Buttons */
+
+.kds-action {
+  margin-top: 12px;
+}
+
+.kds-btn {
+  width: 100%;
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: 600;
+  border: 1px solid #ddd;
+  background: white;
+}
+
+.kds-btn-start {
+  color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.kds-btn-start:hover {
+  background: #0d6efd;
+  color: white;
+}
+
+.kds-btn-ready {
+  color: #198754;
+  border-color: #198754;
+}
+
+.kds-btn-ready:hover {
+  background: #198754;
+  color: white;
+}
+
+.kds-btn-waiter {
+  color: #666;
+  background: #f5f5f5;
+}
+
+/* Status */
+
+.kds-pending {
+  border-top: 4px solid #ffc107;
+}
+
+.kds-preparing {
+  border-top: 4px solid #0d6efd;
+}
+
+.kds-ready {
+  border-top: 4px solid #198754;
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+  .kds-grid {
+    grid-template-columns: 1fr;
+  }
+}

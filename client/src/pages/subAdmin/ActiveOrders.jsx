@@ -18,8 +18,6 @@ function ActiveOrders() {
     const fetchOrders = async () => {
         try {
             const res = await getOrders();
-
-
             if (res.success) {
                 const activeOrders = res.data.filter(
                     (o) =>
@@ -27,7 +25,6 @@ function ActiveOrders() {
                         o.order_status !== "Cancelled" &&
                         o.payment_status !== "Paid"
                 );
-
                 setOrders(activeOrders);
             } else {
                 setOrders([]);
@@ -70,7 +67,6 @@ function ActiveOrders() {
                         <h5 className="text-muted">No Active Orders</h5>
                     </div>
                 ) : (
-
                     orders.map((order) => (
                         <div className="col-lg-4 col-md-6 mb-4" key={order._id}>
                             <div className="card shadow-sm border-0 h-100">
@@ -128,19 +124,22 @@ function ActiveOrders() {
 
                                     <div className="d-flex justify-content-between">
 
-                                        <button
-                                            className="btn btn-outline-primary btn-sm"
-                                        // onClick={() => navigate(`/waiter/order-view/${order._id}`)}
-                                        >
-                                            <FaEye className="me-1" />
-                                            View
-                                        </button>
+                                        {/* <button className="btn btn-outline-primary btn-sm">
+                                            <FaEye className="me-1" /> View
+                                        </button> */}
 
                                         <button
                                             className="btn btn-outline-success btn-sm"
                                             onClick={() =>
-                                                navigate(`${SUB_ADMIN_ROUTE.ORDER_EDIT}/${order._id}`)}>
-                                            <FaPlusCircle className="me-1" />
+                                                navigate(`${SUB_ADMIN_ROUTE.ORDER_EDIT}/${order._id}`, {
+                                                    state: {
+                                                        table_id: order.table_id?._id || order.table_id,
+                                                        tableNumber: order.table_id?.tableNumber,
+                                                        customer_name: order.customer_name,
+                                                        order_type: order.order_type,
+                                                    },
+                                                })
+                                            }>
                                             Add Item
                                         </button>
 
@@ -161,6 +160,7 @@ function ActiveOrders() {
                     ))
 
                 )}
+
 
             </div>
 

@@ -48,7 +48,7 @@ function TableList() {
             : null;
         return {
           ...table,
-          customer_name: waiting?.customer_name || "",
+          customer_name: table.customer_name || "",
           waiting_id: waiting?._id || null,
           phone: waiting?.phone || "",
           party_size: waiting?.party_size || "",
@@ -63,10 +63,14 @@ function TableList() {
       setLoading(false);
     }
   };
+
+
   const handleTableClick = (table) => {
+    console.log("HANDLE CLICK", table);
+
     navigate(SUB_ADMIN_ROUTE.ORDER_ADD, {
       state: {
-        restaurant_id: table.restaurant_id,
+        table: table, // IMPORTANT
         table_id: table._id,
         tableNumber: table.tableNumber,
         customer_name: table.customer_name,
@@ -75,7 +79,7 @@ function TableList() {
         party_size: table.party_size,
         order_type: "Dine In",
       }
-    })
+    });
   };
   // DELETE
   const handleDelete = async (id) => {
@@ -171,17 +175,12 @@ function TableList() {
               )
             );
           }, 10 * 60 * 1000);
-
           break;
-
         default:
           newStatus = "available";
       }
 
       const res = await updateTableStatus(id, newStatus);
-
-      // console.log("Status Response:", res);
-
       setTables((prev) =>
         prev.map((t) =>
           t?._id === id

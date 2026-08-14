@@ -214,11 +214,9 @@ function OrderList() {
                       {order.customer_name || "-"}
                     </td>
 
-
                     <td>
                       ₹{order.total_amount || order.total || 0}
                     </td>
-
                     <td>
                       <span
                         className={`badge ${order.order_status === "Pending"
@@ -232,8 +230,7 @@ function OrderList() {
                                 : order.order_status === "Completed"
                                   ? "bg-success"
                                   : "bg-danger"
-                          }`}
-                      >
+                          }`}>
                         {order.order_status}
                       </span>
                     </td>
@@ -241,25 +238,6 @@ function OrderList() {
                     <td>
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
-
-                    {/* <td>
-
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() =>
-                          navigate(`${WAITER_ROUTE.ORDER_EDIT}/${order._id}`)
-                        }
-                        disabled={order.is_deleted}
-                      >
-                        <FaEdit />
-                      </button>
-
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(order._id)}>
-                        <FaTrash />
-                      </button>
-                    </td> */}
                   </tr>
                 ))
               ) : (

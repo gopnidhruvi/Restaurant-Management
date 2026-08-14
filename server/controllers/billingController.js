@@ -1,9 +1,10 @@
 const billModel = require("../models/billModel");
 const orderModel = require("../models/orderModel");
 const tableModel = require("../models/tableModel");
+const { getNextNumber } = require("../utils/counter");
 
 // Generate Bill
-exports.generateBill = async (req, res, next) => {  
+exports.generateBill = async (req, res, next) => {
     try {
         const {
             order_id,
@@ -47,9 +48,10 @@ exports.generateBill = async (req, res, next) => {
 
         const grandTotal = Number((taxableAmount + taxAmount).toFixed(2));
 
+        const billNumber = await getNextNumber("bill");
         const bill = await billModel.create({
             order_id,
-            bill_number: "BILL-" + Date.now(),
+            bill_number: `BILL-${billNumber}`,
             items: order.items,
             sub_total: subTotal,
             discount_amount: discountAmount,
@@ -66,7 +68,6 @@ exports.generateBill = async (req, res, next) => {
             message: "Bill generated successfully",
             data: bill
         });
-
     } catch (err) {
         next(err);
     }

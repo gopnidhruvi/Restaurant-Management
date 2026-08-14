@@ -5,8 +5,11 @@ const kitchenSchema = new mongoose.Schema(
         order_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Order",
-            required: true,
-            unique: true,
+            required: true
+        },
+        waiter_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Users"
         },
         kot_no: {
             type: String,

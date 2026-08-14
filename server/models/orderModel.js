@@ -7,10 +7,12 @@ const orderSchema = new mongoose.Schema(
       ref: "Table",
       required: true
     },
+
     customer_name: {
       type: String,
       default: ""
     },
+
     waiter_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",
@@ -35,17 +37,14 @@ const orderSchema = new mongoose.Schema(
           ref: "MenuItem"
         },
         item_name: String,
-        price: {
-          type: Number,
-          required: true,
-          min: 0
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          min: 1
-        },
-        total: Number
+        price: Number,
+        quantity: Number,
+        total: Number,
+
+        is_sent_to_kitchen: {
+          type: Boolean,
+          default: false
+        }
       }
     ],
 
@@ -73,7 +72,7 @@ const orderSchema = new mongoose.Schema(
 
     order_status: {
       type: String,
-      enum: [
+      enum: [ 
         "Pending",
         "Preparing",
         "Ready",
@@ -87,6 +86,11 @@ const orderSchema = new mongoose.Schema(
     notes: {
       type: String
     },
+
+    // is_sent_to_kitchen: {
+    //   type: Boolean,
+    //   default: false
+    // },
 
     is_deleted: {
       type: Boolean,

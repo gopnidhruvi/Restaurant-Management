@@ -13,6 +13,17 @@ function Login() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
+  const handleSuperAdmin = () => {
+    const user = {
+      role: ROLES.SUPER_ADMIN,
+      name: "Super Admin",
+    };
+
+    setUser(user);
+    localStorage.setItem("user", JSON.stringify(user));
+
+    navigate(SUPER_ADMIN_ROUTE.RESTOURANTSLIST);
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -37,11 +48,8 @@ function Login() {
 
         if (res.success) {
           const user = res.data;
-          // console.log(user.role);
-          // console.log(ROLES.SUPER_ADMIN);
           setUser(user);
           localStorage.setItem("user", JSON.stringify(user));
-
 
           // ROLE BASED REDIRECT
           if (user.role === ROLES.SUPER_ADMIN) {
@@ -120,6 +128,14 @@ function Login() {
             className="btn btn-dark w-100"
           >
             Login
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-primary w-100 mt-2"
+            onClick={handleSuperAdmin}
+          >
+            Open Super Admin
           </button>
 
         </form>

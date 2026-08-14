@@ -9,6 +9,4 @@ router.delete("/:id", deleteOwner);
 router.patch("/:id/restore", restoreOwner);
 router.patch("/:id/status", changeOwnerStatus);
 
-// router.post("/login", loginOwner);
-
 module.exports = router;

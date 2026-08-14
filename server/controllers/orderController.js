@@ -1,12 +1,13 @@
+const kitchenModel = require("../models/kitchenModel");
 const menuitemsModel = require("../models/menuitemsModel");
 const orderModel = require("../models/orderModel");
 const tableModel = require("../models/tableModel");
 const userModel = require("../models/userModel");
-const kitchenModel = require("../models/kitchenModel");
+const { getNextNumber } = require("../utils/counter");
+
 exports.createOrder = async (req, res, next) => {
     try {
-
-            const {
+        const {
             table_id,
             waiter_id,
             customer_name,
@@ -15,7 +16,7 @@ exports.createOrder = async (req, res, next) => {
             notes,
             items
         } = req.body;
-    
+
         const table = await tableModel.findById(table_id);
 
         if (!table) {
@@ -23,8 +24,8 @@ exports.createOrder = async (req, res, next) => {
             error.statusCode = 404;
         }
 
+        const customerName = customer_name || table.customer_name || "";
         if (waiter_id) {
-
             const waiter = await userModel.findOne({
                 _id: waiter_id,
                 role: "waiter",
@@ -75,7 +76,8 @@ exports.createOrder = async (req, res, next) => {
                 item_name: menuItem.item_name,
                 price: menuItem.price,
                 quantity: item.quantity,
-                total
+                total,
+                is_sent_to_kitchen: false
             });
         }
 
@@ -85,7 +87,7 @@ exports.createOrder = async (req, res, next) => {
         const order = await orderModel.create({
             table_id,
             waiter_id,
-            customer_name,
+            customer_name: customerName,
             order_number: `ORD-${orderNumber}`,
             order_type,
             items: orderItems,
@@ -97,7 +99,7 @@ exports.createOrder = async (req, res, next) => {
         await tableModel.findByIdAndUpdate(
             table_id,
             {
-                status: "Occupied"
+                status: "occupied"
             }
         );
 
@@ -181,7 +183,6 @@ exports.changeOrderStatus = async (req, res, next) => {
 
 exports.addItemsToOrder = async (req, res, next) => {
     try {
-
         const { items } = req.body;
 
         if (!items || items.length === 0) {
@@ -218,28 +219,15 @@ exports.addItemsToOrder = async (req, res, next) => {
 
             const total = menuItem.price * item.quantity;
 
-            // Check if item already exists in order
-            const existingItem = order.items.find(
-                i => i.menu_item_id.toString() === menuItem._id.toString()
-            );
-
-            if (existingItem) {
-
-                existingItem.quantity += item.quantity;
-                existingItem.total = existingItem.price * existingItem.quantity;
-
-            } else {
-
-                order.items.push({
-                    menu_item_id: menuItem._id,
-                    item_name: menuItem.item_name,
-                    price: menuItem.price,
-                    quantity: item.quantity,
-                    total
-                });
-
-            }
-
+            // Always add as a new item
+            order.items.push({
+                menu_item_id: menuItem._id,
+                item_name: menuItem.item_name,
+                price: menuItem.price,
+                quantity: item.quantity,
+                total,
+                is_sent_to_kitchen: false
+            });
             addedAmount += total;
         }
 
@@ -344,7 +332,7 @@ exports.getCompletedOrders = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-}
+};
 
 exports.sendToKitchen = async (req, res, next) => {
     try {
@@ -356,34 +344,32 @@ exports.sendToKitchen = async (req, res, next) => {
             throw error;
         }
 
-        if (order.is_sent_to_kitchen) {
-            const error = new Error("Order already sent to kitchen");
+        // Get only newly added items
+        const pendingItems = order.items.filter(
+            item => !item.is_sent_to_kitchen
+        );
+        console.log("ORDER ITEMS:", order.items);
+        console.log("PENDING ITEMS:", pendingItems);
+        if (pendingItems.length === 0) {
+            const error = new Error(
+                "No new items to send to kitchen"
+            );
             error.statusCode = 400;
             throw error;
         }
 
-        // Check if kitchen slip already exists
-        const existingSlip = await kitchenModel.findOne({
-            order_id: order._id
-        });
-
-        if (existingSlip) {
-            const error = new Error("Kitchen slip already exists");
-            error.statusCode = 400;
-            throw error;
-        }
-
-        // Generate KOT Number
+        // Generate KOT number
         const kotNumber = await getNextNumber("kot");
 
-        // Create Kitchen Slip
+        // Create new kitchen slip
         const kitchenSlip = await kitchenModel.create({
             order_id: order._id,
             table_id: order.table_id,
             waiter_id: order.waiter_id,
             kot_no: `KOT-${kotNumber}`,
             kitchen_status: "Pending",
-            items: order.items.map(item => ({
+
+            items: pendingItems.map(item => ({
                 menu_item_id: item.menu_item_id,
                 name: item.item_name,
                 quantity: item.quantity,
@@ -392,11 +378,19 @@ exports.sendToKitchen = async (req, res, next) => {
             }))
         });
 
+        // Mark these items as sent
+        pendingItems.forEach(item => {
+            item.is_sent_to_kitchen = true;
+        });
+
+        await order.save();
+
         res.status(200).json({
             success: true,
-            message: "Order sent to kitchen successfully",
+            message: "New items sent to kitchen successfully",
             data: kitchenSlip
         });
+
     } catch (err) {
         next(err);
     }

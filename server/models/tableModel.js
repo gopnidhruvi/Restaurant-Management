@@ -8,6 +8,11 @@ const tableSchema = new mongoose.Schema(
             trim: true,
             unique: true,
         },
+        
+        customer_name: {
+            type: String,
+            default: ""
+        },
 
         capacity: {
             type: Number,

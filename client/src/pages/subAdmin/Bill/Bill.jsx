@@ -65,8 +65,8 @@ function Bill() {
               {bill.order_id?.table_id?.restaurant_id?.restaurant_name}
             </h2>
 
-            <p>{bill.order_id?.table_id?.restaurant_id?.address}</p>
-            <p>Phone: {bill.order_id?.table_id?.phone}</p>
+            {/* <p>{bill.order_id?.table_id?.restaurant_id?.address}</p>
+            <p>Phone: {bill.order_id?.table_id?.phone}</p> */}
           </div>
           {/* Bill Info */}
           <div className="row mb-4">

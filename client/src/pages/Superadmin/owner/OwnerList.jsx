@@ -14,8 +14,7 @@ function OwnerList() {
   const fetchOwners = async () => {
     try {
       const res = await getOwners();
-
-      // console.log("Owners API Response:", res);
+    console.log("OWNER API RESPONSE:", res.data);
 
       setOwners(res.data); // 👈 array set કર
     } catch (err) {

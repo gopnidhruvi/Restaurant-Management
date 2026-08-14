@@ -94,7 +94,7 @@ export const sidebarConfig = [
     {
         title: "Category",
         icon: FaTags,
-        roles: [ROLES.OWNER,ROLES.MANAGER],
+        roles: [ROLES.OWNER, ROLES.MANAGER],
 
         children: [
             {
@@ -136,7 +136,7 @@ export const sidebarConfig = [
     {
         title: "Table",
         icon: FaTable,
-        roles: [ROLES.OWNER,ROLES.MANAGER,ROLES.WAITER],
+        roles: [ROLES.OWNER, ROLES.MANAGER, ROLES.WAITER],
 
         children: [
             {
@@ -144,14 +144,14 @@ export const sidebarConfig = [
                 icon: FaThLarge,
                 path: SUB_ADMIN_ROUTE.TABLE_LIST,
                 roles: [ROLES.OWNER, ROLES.MANAGER, ROLES.WAITER],
-                
+
             },
 
             {
                 title: "Add Table",
                 icon: FaPlusCircle,
                 path: SUB_ADMIN_ROUTE.TABLE_ADD,
-                roles: [ROLES.OWNER,ROLES.MANAGER],
+                roles: [ROLES.OWNER, ROLES.MANAGER],
             },
         ],
     },
@@ -180,7 +180,7 @@ export const sidebarConfig = [
     {
         title: "Orders",
         icon: FaClipboardList,
-        roles: [ROLES.OWNER,ROLES.MANAGER,ROLES.WAITER],
+        roles: [ROLES.OWNER, ROLES.MANAGER, ROLES.WAITER],
 
         children: [
             {
@@ -201,44 +201,31 @@ export const sidebarConfig = [
         title: "Active Orders",
         icon: FaList,
         path: SUB_ADMIN_ROUTE.ACTIVE_ORDERS,
-        roles: [ROLES.OWNER,ROLES.MANAGER,ROLES.WAITER],
+        roles: [ROLES.OWNER, ROLES.MANAGER, ROLES.WAITER],
     },
-  
+
     // Waiting
     {
-        title: "Waiting",
+        title: "WaitingQueue",
         icon: FaClipboardList,
-        roles: [ROLES.OWNER,ROLES.MANAGER],
-
-        children: [
-            {
-                title: "WaitingQueue",
-                icon: FaCartPlus,
-                path: SUB_ADMIN_ROUTE.WAITINGQUEUE,
-            },
-            {
-                title: "WaitingOrderCard",
-                icon: FaCartPlus,
-                path: SUB_ADMIN_ROUTE.WATINGORDERCARD,
-            },
-            
-        ],
+          path: SUB_ADMIN_ROUTE.WAITINGQUEUE,
+        roles: [ROLES.OWNER, ROLES.MANAGER],
     },
 
     {
         title: "Bill List",
         icon: FaList,
         path: SUB_ADMIN_ROUTE.BILL_LIST,
-        roles: [ROLES.OWNER,ROLES.MANAGER],
+        roles: [ROLES.OWNER, ROLES.MANAGER],
     },
 
     {
         title: "Kitchen",
         icon: FaList,
         path: SUB_ADMIN_ROUTE.KITCHEN,
-        roles: [ROLES.OWNER,ROLES.MANAGER,ROLES.WAITER],
+        roles: [ROLES.OWNER, ROLES.MANAGER, ROLES.WAITER],
     },
-  
+
 
     // Bill
 
@@ -256,5 +243,5 @@ export const sidebarConfig = [
     //         },
     //     ],
     // },
-  
+
 ];

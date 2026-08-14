@@ -1,159 +1,158 @@
 const kitchenModel = require("../models/kitchenModel");
 const orderModel = require("../models/orderModel");
 
-exports.generateKitchenSlip = async (req, res, next) => {
+exports.getKitchenOrders = async (req, res, next) => {
     try {
-        const { order_id } = req.body;
-
-        const order = await orderModel.findById(order_id);
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: "Order not found"
-            });
-        }
-
-        const alreadyExist = await kitchenSlipModel.findOne({
-            order_id
-        });
-
-        if (alreadyExist) {
-            return res.status(400).json({
-                success: false,
-                message: "Kitchen Slip already generated"
-            });
-        }
-
-        const count = await kitchenSlipModel.countDocuments();
-
-        const slip = await kitchenSlipModel.create({
-            order_id: order._id,
-
-            table_id: order.table_id,
-
-            waiter_id: order.waiter_id,
-
-            kot_no: `KOT-${1000 + count + 1}`,
-
-            items: order.items.map(item => ({
-                menu_item_id: item.menu_item_id,
-                name: item.name,
-                quantity: item.quantity,
-                note: item.note
-            }))
-        });
-
-        res.status(201).json({
-            success: true,
-            message: "Kitchen Slip Generated",
-            data: slip
-        });
-
-    } catch (err) {
-        next(err);
-    }
-};
-
-// Update Display Config
-exports.updateDisplayConfig = async (req, res, next) => {
-    try {
-        const { restaurant_id } = req.params;
-
-        const config = await kitchenModel.findOneAndUpdate(
-            { restaurant_id },
-            req.body,
-            { new: true }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: "Display config updated successfully",
-            data: config
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// Get Kitchen Display Orders (live KDS feed)
-exports.getKitchenDisplayOrders = async (req, res, next) => {
-    try {
-        const { restaurant_id } = req.params;
-
-        const config = await kitchenModel.findOne({ restaurant_id });
-
-        const statusFilter = config
-            ? config.statuses_to_show
-            : ["Pending", "Preparing", "Ready"];
-
-        const orders = await orderModel
+        const kitchenOrders = await kitchenModel
             .find({
-                restaurant_id,
-                order_status: { $in: statusFilter },
-                is_deleted: false
+                kitchen_status: {
+                    $ne: "Served"
+                }
             })
+            .populate("order_id", "order_number order_type customer_name")
             .populate("table_id", "tableNumber")
             .populate("waiter_id", "name")
-            .sort({ createdAt: 1 });
+            .sort({
+                createdAt: -1
+            });
 
         res.status(200).json({
             success: true,
-            count: orders.length,
-            config: config || {},
-            data: orders
+            count: kitchenOrders.length,
+            data: kitchenOrders
         });
+
     } catch (err) {
         next(err);
     }
 };
 
-// Mark Order as Preparing from Kitchen Display
-exports.markOrderPreparing = async (req, res, next) => {
+exports.getKitchenOrderById = async (req, res, next) => {
     try {
-        const order = await orderModel.findByIdAndUpdate(
-            req.params.order_id,
-            { order_status: "Preparing" },
-            { new: true }
-        );
 
-        // if (!order) {
-        //     return res.status(404).json({
-        //         success: false,
-        //         message: "Order not found"
-        //     });
-        // }
+        const kitchenOrder = await kitchenModel
+            .findById(req.params.id)
+            .populate("order_id")
+            .populate("table_id")
+            .populate("waiter_id", "name");
+
+        if (!kitchenOrder) {
+            const error = new Error("Kitchen order not found");
+            error.statusCode = 404;
+            throw error;
+        }
 
         res.status(200).json({
             success: true,
-            message: "Order marked as Preparing",
-            data: order
+            data: kitchenOrder
         });
+
     } catch (err) {
         next(err);
     }
 };
 
-// Mark Order Ready from Kitchen Display
-exports.markOrderReady = async (req, res, next) => {
+exports.acceptKitchenOrder = async (req, res, next) => {
     try {
-        const order = await orderModel.findByIdAndUpdate(
-            req.params.order_id,
-            { order_status: "Ready" },
-            { new: true }
-        );
+        const kitchenOrder = await kitchenModel.findById(req.params.id);
 
-        // if (!order) {
-        //     return res.status(404).json({
-        //         success: false,
-        //         message: "Order not found"
-        //     });
-        // }
+        if (!kitchenOrder) {
+            const error = new Error("Kitchen order not found");
+            error.statusCode = 404;
+            throw error;
+        }
+
+        if (kitchenOrder.kitchen_status !== "Pending") {
+            const error = new Error("Only pending orders can be accepted");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        kitchenOrder.kitchen_status = "Preparing";
+
+        kitchenOrder.items.forEach(item => {
+            item.status = "Preparing";
+        });
+
+        await kitchenOrder.save();
 
         res.status(200).json({
             success: true,
-            message: "Order marked as Ready",
-            data: order
+            message: "Kitchen order accepted successfully",
+            data: kitchenOrder
         });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.readyKitchenOrder = async (req, res, next) => {
+    try {
+
+        const kitchenOrder = await kitchenModel.findById(req.params.id);
+
+        if (!kitchenOrder) {
+            const error = new Error("Kitchen order not found");
+            error.statusCode = 404;
+            throw error;
+        }
+
+        if (kitchenOrder.kitchen_status !== "Preparing") {
+            const error = new Error("Order must be Preparing");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        kitchenOrder.kitchen_status = "Ready";
+
+        kitchenOrder.items.forEach(item => {
+            item.status = "Ready";
+        });
+
+        await kitchenOrder.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Food is ready",
+            data: kitchenOrder
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.servedKitchenOrder = async (req, res, next) => {
+    try {
+        const kitchenOrder = await kitchenModel.findById(req.params.id);
+
+        if (!kitchenOrder) {
+            const error = new Error("Kitchen order not found");
+            error.statusCode = 404;
+            throw error;
+        }
+
+        if (kitchenOrder.kitchen_status !== "Ready") {
+            const error = new Error("Order is not ready");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        kitchenOrder.kitchen_status = "Served";
+
+        kitchenOrder.items.forEach(item => {
+            item.status = "Served";
+        });
+
+        await kitchenOrder.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Order served successfully",
+            data: kitchenOrder
+        });
+
     } catch (err) {
         next(err);
     }

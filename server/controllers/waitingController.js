@@ -158,7 +158,6 @@ exports.seatCustomer = async (req, res, next) => {
                     message: "Table is not available"
                 });
             }
-
             // Check table capacity
             if (entry.party_size > table.capacity) {
                 return res.status(400).json({
@@ -166,8 +165,8 @@ exports.seatCustomer = async (req, res, next) => {
                     message: "Table capacity is not enough"
                 });
             }
-
-            await tableModel.findByIdAndUpdate(table_id, { status: "Occupied" });
+            await tableModel.findByIdAndUpdate(table_id,
+                { status: "occupied", customer_name: entry.customer_name });
         }
 
         entry.status = "Seated";
