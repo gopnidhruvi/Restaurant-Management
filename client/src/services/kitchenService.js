@@ -1,3 +1,5 @@
+// import api from "../api/axios";
+
 import api from "../api/axios";
 
 // Get all kitchen orders
@@ -27,5 +29,11 @@ export const readyKitchenOrder = async (id) => {
 // Ready -> Served
 export const servedKitchenOrder = async (id) => {
   const res = await api.put(`/api/kitchen/served/${id}`);
+  return res.data;
+};
+
+// Live Display Screen
+export const getDisplayScreen = async () => {
+  const res = await api.get("/api/kitchen/display-screen")
   return res.data;
 };

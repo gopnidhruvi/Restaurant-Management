@@ -32,15 +32,12 @@ function StaffForm() {
       .required("Phone is required"),
 
     role: Yup.string().required("Role is required"),
-
     restaurant_id: Yup.string().required("Restaurant is required"),
-
     status: Yup.string().required("Status is required"),
   });
 
   const formik = useFormik({
     enableReinitialize: true,
-
     initialValues: {
       name: "",
       email: "",
@@ -52,24 +49,18 @@ function StaffForm() {
     },
 
     validationSchema,
-
-  
     onSubmit: async (values) => {
       try {
         let payload = { ...values };
-
         if (!payload.password) {
           delete payload.password;
         }
-
         let res;
-
         if (id) {
           res = await updateStaff(id, payload);
         } else {
           res = await createStaff(payload);
         }
-
         if (res?.success) {
           navigate(SUB_ADMIN_ROUTE.STAFFLIST);
         }
@@ -89,7 +80,6 @@ function StaffForm() {
   const fetchStaff = async () => {
     try {
       const res = await getStaffById(id);
-
       formik.setValues({
         name: res.data.name || "",
         email: res.data.email || "",
@@ -106,7 +96,6 @@ function StaffForm() {
   const fetchRestaurants = async () => {
     try {
       const res = await getRestaurants();
-
       if (res.success) {
         setRestaurants(res.data);
       }
@@ -117,25 +106,17 @@ function StaffForm() {
 
   return (
     <div className="container py-4 d-flex justify-content-center">
-
       <div className="form-card shadow-lg border-0 rounded-4 p-4">
-
         <div className="d-flex align-items-center gap-3 mb-4">
-
           <div className="bg-blue text-white p-3 rounded-circle">
             <FaUserTie />
           </div>
-
           <div>
-            <h4>
-              {id ? "Edit Staff" : "Create Staff"}
-            </h4>
-
+            <h4> {id ? "Edit Staff" : "Create Staff"} </h4>
             <small className="text-muted">
               Manage restaurant staff
             </small>
           </div>
-
         </div>
 
         <form onSubmit={formik.handleSubmit}>

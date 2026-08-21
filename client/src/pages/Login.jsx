@@ -26,7 +26,7 @@ function Login() {
   };
 
   const formik = useFormik({
-    initialValues: {
+    initialValues: {  
       email: "",
       password: "",
     },

@@ -55,12 +55,15 @@ export const SUB_ADMIN_ROUTE = {
     BILL: "/sub-admin/bill",
     BILL_LIST: "/sub-admin/bill-list",
 
+
     // Waiting
     WAITINGQUEUE: "/manager/waiting-queue",
     WATINGORDERCARD: "/manager/waiting-order-card",
     TABLEASSINGMODAL: "/manager/table-assign-modal",
 
+    KITCHEN: "/kitchen",
 
-KITCHEN: "/kitchen",
+    // LiveScreen
+    LIVESCREEN:"/sub-admin/Livescreen"
+
 };
-

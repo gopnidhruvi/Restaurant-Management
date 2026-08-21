@@ -80,7 +80,6 @@ function WaitingQueue() {
     setSelectedCustomer(customer);
 
     const res = await getAllTables();
-
     if (res.success) {
       const availableTables = res.data.filter(
         (table) =>
@@ -90,54 +89,80 @@ function WaitingQueue() {
       setTables(availableTables);
     }
   };
+
   const handleAssignTable = async () => {
     if (!selectedTable) {
       toast.warning("Please Select Table");
       return;
     }
 
+    if (!selectedCustomer?._id) {
+      toast.error("Waiting customer ID not found");
+      console.log("SELECTED CUSTOMER:", selectedCustomer);
+      return;
+    }
+
     try {
       const customer = selectedCustomer;
+
+      // ⭐ THIS IS THE WAITING ENTRY ID
+      const waitingEntryId = String(customer._id);
+
+      console.log("========== WAITING DATA ==========");
+      console.log("Customer:", customer);
+      console.log("Waiting Entry ID:", waitingEntryId);
 
       const res = await seatCustomer(customer._id, {
         table_id: selectedTable,
       });
 
-      if (res.success) {
-        toast.success("Table Assigned Successfully");
+      console.log("SEAT CUSTOMER RESPONSE:", res);
 
-        const selectedTableData = tables.find(
-          (t) => t._id === selectedTable
-        );
-
-        navigate(SUB_ADMIN_ROUTE.WAITINGQUEUE, {
-          state: {
-            waiting_id: customer._id,
-            restaurant_id: restaurantId,
-            table_id: selectedTable,
-            tableNumber: selectedTableData?.tableNumber,
-            customer_name: customer.customer_name,
-            phone: customer.phone,
-            party_size: customer.party_size,
-            order_type: "Dine In",
-          },
-        });
-
-        setSelectedCustomer(null);
-        setSelectedTable("");
-
-        fetchData();
+      if (!res.success) {
+        toast.error(res.message || "Unable to assign table");
+        return;
       }
+
+      const selectedTableData = tables.find(
+        (t) => String(t._id) === String(selectedTable)
+      );
+      const navigationState = {
+        table: selectedTableData,
+        table_id: selectedTable,
+        tableNumber: selectedTableData?.tableNumber,
+        customer_name: customer.customer_name,
+        waiting_entry_id: waitingEntryId,
+        restaurant_id: restaurantId,
+        phone: customer.phone,
+        party_size: customer.party_size,
+        token_number: customer.token_number,
+        order_type: "Dine In",
+      };
+      navigate(SUB_ADMIN_ROUTE.ORDERFORM, {
+        state: navigationState,
+      });
+
+      setSelectedCustomer(null);
+      setSelectedTable("");
+
     } catch (err) {
-      console.log(err.response?.data || err.message);
+      console.log(
+        "ASSIGN TABLE ERROR:",
+        err.response?.data || err.message
+      );
+
+      toast.error(
+        err.response?.data?.message ||
+        err.message ||
+        "Unable to assign table"
+      );
     }
   };
+
   const getWaitingTime = (createdAt) => {
     if (!createdAt) return "-";
-
     const created = new Date(createdAt);
     const now = new Date();
-
     const diff = Math.floor((now - created) / (1000 * 60));
 
     if (diff < 1) return "Just Now";
@@ -257,16 +282,6 @@ function WaitingQueue() {
                 value={formData.party}
                 onChange={handleChange}
               />
-
-              {/* <input
-                className="form-control mb-3"
-                placeholder="Wait Time"
-                type="number"
-                name="wait"
-                value={formData.wait}
-                onChange={handleChange}
-              /> */}
-
               <textarea
                 className="form-control"
                 placeholder="Notes"

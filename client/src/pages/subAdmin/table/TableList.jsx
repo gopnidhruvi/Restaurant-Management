@@ -7,10 +7,9 @@ import { deleteTable, getAllTables, restoreTable, updateTableStatus } from "../.
 import { getWaitingList } from "../../../services/waitingService";
 import { useAuth } from "../../../context/AuthContext";
 
+
 function TableList() {
-
   const { user } = useAuth();
-
   const CURRENT_ROLE = user?.role;
   const navigate = useNavigate();
   const [tables, setTables] = useState([]);
@@ -21,6 +20,7 @@ function TableList() {
 
   const isWaiter = CURRENT_ROLE?.toLowerCase() === "waiter";
   const isAdmin = !isManager && !isWaiter;
+  const [statusDropdown, setStatusDropdown] = useState(null);
 
   useEffect(() => {
     fetchTables();
@@ -29,9 +29,7 @@ function TableList() {
   const fetchTables = async () => {
     try {
       const tableRes = await getAllTables();
-
       let waitingList = [];
-
       if (isWaiter || isManager) {
         const waitingRes = await getWaitingList({ status: "Seated" });
         if (waitingRes.success) {
@@ -52,6 +50,7 @@ function TableList() {
           waiting_id: waiting?._id || null,
           phone: waiting?.phone || "",
           party_size: waiting?.party_size || "",
+
         };
       });
 
@@ -67,21 +66,20 @@ function TableList() {
 
   const handleTableClick = (table) => {
     console.log("HANDLE CLICK", table);
-
     navigate(SUB_ADMIN_ROUTE.ORDER_ADD, {
       state: {
-        table: table, // IMPORTANT
+        table: table,
         table_id: table._id,
         tableNumber: table.tableNumber,
         customer_name: table.customer_name,
-        waiting_id: table.waiting_id,
+        // waiting_entry_id: null,
         phone: table.phone,
         party_size: table.party_size,
         order_type: "Dine In",
       }
     });
   };
-  // DELETE
+  // Delete
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -113,7 +111,7 @@ function TableList() {
       console.log(err);
     }
   };
-  // RESTORE
+  // Restore
   const handleRecover = async (id) => {
     const result = await Swal.fire({
       title: "Restore Table?",
@@ -142,45 +140,58 @@ function TableList() {
       console.log(err);
     }
   };
-  // STATUS TOGGLE
-  const handleToggleStatus = async (id) => {
+  // Status Toggle
+  const handleToggleStatus = async (id, selectedStatus = null) => {
     try {
       const item = tables.find((t) => t?._id === id);
-
       if (!item) return;
-
-      let newStatus = "available";
-
-      switch (item.status) {
-        case "available":
-          newStatus = "occupied";
-          break;
-
-        case "occupied":
-          newStatus = "reserved";
-          break;
-
-        case "reserved":
-          newStatus = "cleaning";
-
-          // 10 minute પછી available
-          setTimeout(async () => {
-            await updateTableStatus(id, "available");
-
-            setTables((prev) =>
-              prev.map((t) =>
-                t._id === id
-                  ? { ...t, status: "available" }
-                  : t
-              )
-            );
-          }, 10 * 60 * 1000);
-          break;
-        default:
-          newStatus = "available";
+      let newStatus;
+      if (selectedStatus) {
+        newStatus = selectedStatus;
       }
+      else {
+        switch (item.status?.toLowerCase()) {
+          case "available":
+            newStatus = "occupied";
+            break;
 
+          case "occupied":
+            newStatus = "reserved";
+            break;
+
+          case "reserved":
+            newStatus = "cleaning";
+            setTimeout(async () => {
+              try {
+                await updateTableStatus(id, "available");
+
+                setTables((prev) =>
+                  prev.map((t) =>
+                    t._id === id
+                      ? {
+                        ...t,
+                        status: "available",
+                      }
+                      : t
+                  )
+                );
+              } catch (err) {
+                console.log("Auto available error:", err);
+              }
+            }, 10 * 60 * 1000);
+
+            break;
+
+          case "cleaning":
+            newStatus = "available";
+            break;
+
+          default:
+            newStatus = "available";
+        }
+      }
       const res = await updateTableStatus(id, newStatus);
+      console.log("TABLE STATUS UPDATED:", newStatus);
       setTables((prev) =>
         prev.map((t) =>
           t?._id === id
@@ -191,8 +202,9 @@ function TableList() {
             : t
         )
       );
+
     } catch (err) {
-      console.log(err);
+      console.log("STATUS UPDATE ERROR:", err);
     }
   };
   return (
@@ -205,15 +217,10 @@ function TableList() {
             Manage restaurant tables
           </small>
         </div>
-
-
         {!isManager && !isWaiter && (
-          <button
-            className="btn btn-success"
-            onClick={() => navigate(SUB_ADMIN_ROUTE.TABLE_ADD)}
-          >
-            <FaPlus className="me-2" />
-            Add Table
+          <button className="btn btn-success"
+            onClick={() => navigate(SUB_ADMIN_ROUTE.TABLE_ADD)}>
+            <FaPlus className="me-2" />Add Table
           </button>
         )}
       </div>
@@ -223,7 +230,7 @@ function TableList() {
         {tables.filter((table) => {
           if (!table) return false;
 
-          // Waiter & Manager માટે Occupied table hide
+          // Waiter & Manager Occupied table hide
           if (
             (isWaiter || isManager) &&
             table.status?.toLowerCase() === "occupied"
@@ -236,14 +243,12 @@ function TableList() {
           tables
             .filter((table) => {
               if (!table) return false;
-
               if (
                 (isWaiter || isManager) &&
                 table.status?.toLowerCase() === "occupied"
               ) {
                 return false;
               }
-
               return true;
             })
             .map((table) => {
@@ -257,8 +262,7 @@ function TableList() {
               return (
                 <div
                   className="col-xl-3 col-lg-4 col-md-6 mb-4"
-                  key={table._id}
-                >
+                  key={table._id}>
                   <div
                     className="card shadow border-0 h-100"
                     style={{
@@ -332,15 +336,45 @@ function TableList() {
                               <FaTrash />
                             </button>
                           )}
-                          <button
-                            className="btn btn-outline-warning btn-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleStatus(table._id);
-                            }}
-                            disabled={table.isDeleted}>
-                            Status
-                          </button>
+
+                          {statusDropdown === table._id ? (
+                            <select
+                              className="form-select form-select-sm text-nowrap"
+                              value={table.status}
+                              onChange={(e) => {
+                                const newStatus = e.target.value;
+
+                                handleToggleStatus(table._id, newStatus);
+                                setStatusDropdown(null);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              disabled={table.isDeleted}
+                            >
+                              <option value="available">Available</option>
+                              <option value="occupied">Occupied</option>
+                              <option value="reserved">Reserved</option>
+                              <option value="cleaning">Cleaning</option>
+                            </select>
+                          ) : (
+                            <button
+                              className={`btn btn-sm text-nowrap ${table.status === "cleaning"
+                                  ? "btn-outline-success"
+                                  : "btn-outline-warning"
+                                }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (table.status === "cleaning") {
+                                  handleToggleStatus(table._id, "available");
+                                } else {
+                                  setStatusDropdown(table._id);
+                                }
+                              }}
+                              disabled={table.isDeleted}>
+                              {table.status === "cleaning"
+                                ? "Make Available"
+                                : "Change Status"}
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

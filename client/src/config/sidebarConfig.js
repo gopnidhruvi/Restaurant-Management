@@ -227,21 +227,12 @@ export const sidebarConfig = [
     },
 
 
-    // Bill
-
-
-    //     {
-    //     title: "Bill",
-    //     icon: FaClipboardList,
-    //     roles: [ROLES.OWNER],
-
-    //     children: [
-    //         {
-    //             title: "Bill List",
-    //             icon: FaList,
-    //             path: SUB_ADMIN_ROUTE.BILL,
-    //         },
-    //     ],
-    // },
+//   livescreen
+ {
+        title: "LiveScreen",
+        icon: FaList,
+        path: SUB_ADMIN_ROUTE.LIVESCREEN,
+        roles: [ROLES.OWNER, ROLES.MANAGER, ROLES.WAITER],
+    },
 
 ];

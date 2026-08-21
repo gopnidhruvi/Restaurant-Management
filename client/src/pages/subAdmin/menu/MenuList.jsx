@@ -2,30 +2,18 @@ import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash, FaEyeSlash, FaEye, FaUndo } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-
-import {
-  getMenuItems,
-  deleteMenuItem,
-  restoreMenuItem,
-  changeMenuItemStatus,
-} from "../../../services/menuItemService";
-
+import { getMenuItems, deleteMenuItem, restoreMenuItem, changeMenuItemStatus, } from "../../../services/menuItemService";
 import { SUB_ADMIN_ROUTE } from "../../../Constant/RoutesConstant";
 
 function MenuList() {
   const navigate = useNavigate();
-
-
   const [menus, setMenus] = useState([]);
-  // const [filter, setFilter] = useState("all");
   const [selectedMenus, setSelectedMenus] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const itemsPerPage = 5;
 
-  // FETCH
+  // Fetch
   const fetchData = async () => {
     try {
       const res = await getMenuItems();
@@ -38,7 +26,7 @@ function MenuList() {
     fetchData();
   }, []);
 
-  // FILTER
+  // Filter
   const filteredMenus = menus.filter((menu) => {
     const categoryMatch =
       !selectedCategory ||
@@ -53,12 +41,8 @@ function MenuList() {
         .map((m) => [m.category_id._id, m.category_id])
     ).values(),
   ];
-  // const indexOfLastItem = currentPage * itemsPerPage;
-  // const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // const currentMenus = filteredMenus.slice(indexOfFirstItem, indexOfLastItem);
-  // const totalPages = Math.ceil(filteredMenus.length / itemsPerPage);
 
-  // SELECT
+  // Select
   const handleSelect = (id) => {
     setSelectedMenus((prev) =>
       prev.includes(id)
@@ -75,7 +59,7 @@ function MenuList() {
     }
   };
 
-  // DELETE
+  // Delete
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -98,7 +82,7 @@ function MenuList() {
     }
   };
 
-  // RESTORE
+  // Restore
   const handleRecover = async (id) => {
     const result = await Swal.fire({
       title: "Restore item?",
@@ -120,7 +104,7 @@ function MenuList() {
     }
   };
 
-  // STATUS TOGGLE
+  // Status Toggle
   const handleToggleStatus = async (id) => {
     try {
       const item = menus.find((m) => m._id === id);
@@ -163,9 +147,10 @@ function MenuList() {
           Manage restaurant menu items
         </small>
       </div>
-      {/* // ================== OWNER TABLE ================== */}
+
+      {/* // ================== Owner Table ================== */}
       <>
-        {/* FILTER */}
+        {/* Filter */}
         <div className="row mb-4">
           <div className="col-md-3">
             <select
@@ -184,7 +169,7 @@ function MenuList() {
           </div>
         </div>
 
-        {/* TABLE */}
+        {/* Table */}
         <div className="row g-4">
           {filteredMenus.length > 0 ? (
             filteredMenus.map((menu) => (
@@ -245,12 +230,10 @@ function MenuList() {
                     </h5>
 
                     <div className="small text-secondary">
-
                       <div className="d-flex justify-content-between mb-2">
                         <span>Category</span>
                         <span>{menu.category_id?.category_name || "-"}</span>
                       </div>
-
                       <div className="d-flex justify-content-between mb-2">
                         <span>Price</span>
                         <span className="fw-bold text-success">

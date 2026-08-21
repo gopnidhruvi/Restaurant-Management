@@ -30,6 +30,7 @@ import OrderList from './pages/subAdmin/order/OrderList';
 import Bill from './pages/subAdmin/Bill/Bill';
 import BillList from './pages/subAdmin/Bill/BillList'
 import Kitchen from './pages/Kitchen/Kitchen';
+import LiveScreen from './pages/live-screen/LiveScreen';
 
 function App(props) {
   return (
@@ -73,8 +74,13 @@ function App(props) {
             {/* <Route path={SUB_ADMIN_ROUTE.BILL + "/:id"} element={<Bill />} />     */}
             <Route path={SUB_ADMIN_ROUTE.BILL_LIST} element={<BillList />} />
             <Route path={`${SUB_ADMIN_ROUTE.BILL}/:id`} element={<Bill />} />
+         
 
             <Route path={SUB_ADMIN_ROUTE.KITCHEN} element={<Kitchen />} />
+
+            <Route path={SUB_ADMIN_ROUTE.LIVESCREEN} element={<LiveScreen />} />
+
+
 
           </Route>
         </Routes>

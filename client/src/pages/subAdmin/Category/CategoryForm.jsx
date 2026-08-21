@@ -3,11 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate, useParams } from "react-router-dom";
 
-import {
-  createCategory,
-  getCategoryById,
-  updateCategory
-} from "../../../services/categoryService";
+import { createCategory,getCategoryById,updateCategory} from "../../../services/categoryService";
 import { SUB_ADMIN_ROUTE } from "../../../Constant/RoutesConstant";
 import { FaTags, FaImage, FaSave } from "react-icons/fa";
 
@@ -21,7 +17,6 @@ function CategoryForm() {
     category_name: Yup.string()
       .min(2)
       .required("Category name is required"),
-
     status: Yup.string()
       .oneOf(["active", "inactive"])
       .required("Status required"),
@@ -49,19 +44,15 @@ function CategoryForm() {
         if (values.image && typeof values.image !== "string") {
           formData.append("image", values.image);
         }
-
         let res;
-
         if (id) {
           res = await updateCategory(id, formData);
         } else {
           res = await createCategory(formData);
         }
-
         if (res?.success) {
           navigate(SUB_ADMIN_ROUTE.CATEGORYLIST);
         }
-
       } catch (err) {
         console.log(err.response?.data || err.message);
       }
@@ -70,12 +61,9 @@ function CategoryForm() {
   // fetch category for edit
   useEffect(() => {
     if (!id) return;
-
     const fetchCategory = async () => {
       try {
         const res = await getCategoryById(id);
-
-
         formik.setValues({
           category_name: res.data.category_name || "",
           description: res.data.description || "",
@@ -99,9 +87,7 @@ function CategoryForm() {
 
   return (
     <div className="container py-4 d-flex justify-content-center">
-
       <div className="form-card shadow-lg border-0 rounded-4 p-4" >
-
         {/* HEADER */}
         <div className="d-flex align-items-center gap-3 mb-4">
           <div className="bg-blue text-white p-3 rounded-circle">
@@ -116,65 +102,40 @@ function CategoryForm() {
 
         {/* FORM */}
         <form onSubmit={formik.handleSubmit}>
-
-          {/* NAME */}
-          <input
-            name="category_name"
-            className="form-control mb-2"
-            placeholder="Category Name"
+          {/* Name */}
+          <input name="category_name" className="form-control mb-2"  placeholder="Category Name"
             value={formik.values.category_name}
-            onChange={formik.handleChange}
-          />
+            onChange={formik.handleChange}/>
 
-          {/* DESCRIPTION */}
-          <textarea
-            name="description"
-            className="form-control mb-2"
-            placeholder="Description"
-            value={formik.values.description}
-            onChange={formik.handleChange}
-          />
+          {/* Description */}
+          <textarea  name="description" className="form-control mb-2" placeholder="Description"
+            value={formik.values.description} onChange={formik.handleChange} />
 
-          {/* IMAGE */}
+          {/* Image */}
           <div className="input-group mb-2">
-            <label htmlFor="image" className="btn btn-outline-secondary">
-              Choose File
-            </label>
+            <label htmlFor="image" className="btn btn-outline-secondary">  Choose File</label>
 
-            <input
-              id="image"
-              type="file"
-              hidden
+            <input id="image"  type="file" hidden
               onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) {
                   formik.setFieldValue("image", file);
                   setImageName(file.name);
                 }
-              }}
-            />
+              }}/>
 
-            <input
-              type="text"
-              className="form-control"
-              value={imageName}
-              readOnly
-            />
+            <input  type="text" className="form-control" value={imageName}
+              readOnly />
           </div>
 
-
-          {/* STATUS */}
-          <select
-            name="status"
-            className="form-select mb-3"
-            value={formik.values.status}
-            onChange={formik.handleChange}
-          >
+          {/* Status */}
+          <select  name="status" className="form-select mb-3"
+            value={formik.values.status} onChange={formik.handleChange} >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
 
-          {/* SUBMIT */}
+          {/* Subnit */}
           <button type="submit" className="btn bg-blue text-white w-100">
             <FaSave className="me-2" />
             {id ? "Update Category" : "Save Category"}

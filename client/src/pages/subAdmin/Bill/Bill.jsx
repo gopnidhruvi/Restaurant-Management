@@ -1,14 +1,9 @@
 import React, { useEffect, useState } from "react";
-import {
-  FaPrint,
-  FaReceipt,
-  FaChair,
-  FaUser,
-  FaMoneyBillWave,
-} from "react-icons/fa";
+import { FaPrint, FaReceipt, FaChair, FaUser, FaMoneyBillWave, FaQrcode, FaCreditCard } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import { confirmPayment, getBillById } from "../../../services/billService";
 import { toast } from "react-toastify";
+
 
 
 function Bill() {
@@ -51,182 +46,128 @@ function Bill() {
     }
   };
   return (
-    <div className="container py-4">
-      <div
-        className="card shadow mx-auto"
-        style={{ maxWidth: "850px", borderRadius: "15px" }}
-      >
-        {/* Header */}
-
-        <div className="card-body">
-
-          <div className="text-center border-bottom pb-3 mb-4">
-            <h2 className="fw-bold text-success mb-1">
-              {bill.order_id?.table_id?.restaurant_id?.restaurant_name}
-            </h2>
-
-            {/* <p>{bill.order_id?.table_id?.restaurant_id?.address}</p>
-            <p>Phone: {bill.order_id?.table_id?.phone}</p> */}
-          </div>
-          {/* Bill Info */}
-          <div className="row mb-4">
-            <div className="col-md-6">
-              <p className="mb-1">
-                <strong>Bill No :</strong> {bill.bill_number}
-              </p>
-              <p className="mb-1">
-                <strong>Order No :</strong> {bill.order_id?.order_number}
-              </p>
-              <p className="mb-1">
-                <strong>Date :</strong>{" "}
-                {new Date(bill.createdAt).toLocaleString()}
-              </p>
-            </div>
-            <div className="col-md-6 text-md-end">
-              <p className="mb-1">
-                Payment :
-                <span
-                  className={`badge ms-2 ${bill.payment_status === "Paid"
-                    ? "bg-success"
-                    : "bg-warning text-dark"
-                    }`}
-                >
-                  {bill.payment_status}
-                </span>
-              </p>
-            </div>
-          </div>
-          {/* Items */}
-          <div className="table-responsive">
-            <table className="table table-bordered align-middle">
-              <thead className="table-success">
-                <tr>
-                  <th width="60">#</th>
-                  <th>Item</th>
-                  <th className="text-center" width="100">
-                    Qty
-                  </th>
-                  <th className="text-end" width="120">
-                    Rate
-                  </th>
-                  <th className="text-end" width="150">
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {bill.items?.map((item, index) => (
-                  <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>{item.item_name}</td>
-                    <td className="text-center">
-                      {item.quantity}
-                    </td>
-                    <td className="text-end">
-                      ₹ {item.price}
-                    </td>
-                    <td className="text-end">
-                      ₹ {(item.price * item.quantity).toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Total */}
-          <div className="row justify-content-end">
-
-            <div className="col-md-5">
-
-              <table className="table table-borderless">
-
-                <tbody>
-
-                  <tr>
-
-                    <td>Sub Total</td>
-
-                    <td className="text-end">
-                      ₹ {bill.sub_total}
-                    </td>
-
-                  </tr>
-
-                  <tr>
-
-                    <td>GST</td>
-
-                    <td className="text-end">
-                      ₹ {bill.tax_amount}
-                    </td>
-
-                  </tr>
-
-                  <tr>
-
-                    <td>Discount</td>
-
-                    <td className="text-end text-danger">
-                      - ₹ {bill.discount_amount}
-                    </td>
-
-                  </tr>
-
-                  <tr className="border-top border-dark fw-bold fs-5">
-
-                    <td>Grand Total</td>
-
-                    <td className="text-end text-success">
-                      ₹ {bill.grand_total}
-                    </td>
-
-                  </tr>
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          </div>
-
-          <hr />
-
-          {/* Footer */}
-
-          <div className="text-center">
-
-            <h5 className="fw-bold">
-              🙏 Thank You, Visit Again 🙏
+    <div className="bill-page d-flex justify-content-center py-5 px-3 bg-light">
+      <div className="settle-bill-card w-100 bg-white rounded-3 p-3 shadow">
+        {/* HEADER */}
+        <div className="settle-header d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h5 className="mb-1">
+              Settle Bill {bill.order_id?.table_id?.tableNumber}
             </h5>
-
             <small className="text-muted">
-              Powered by Restaurant POS System
+              {bill.order_id?.order_number} · {bill.items?.length || 0} items ·{" "}
+              {bill.order_id?.customer_name || "Customer"}
             </small>
+          </div>
+        </div>
 
+        {/* TOTAL SECTION */}
+        <div className="amount-box border rounded-3 p-3 bg-white">
+          <div className="amount-row d-flex justify-content-between align-items-center mb-2 text-secondary">
+            <span>Subtotal</span>
+            <strong className="text-dark fw-medium">₹{Number(bill.sub_total || 0).toFixed(0)}</strong>
           </div>
 
-          {/* Buttons */}
+          <div className="amount-row d-flex justify-content-between align-items-center mb-2 text-secondary">
+            <span>Service charge (5%)</span>
+            <strong className="text-dark fw-medium">
+              ₹{Number(bill.service_charge_amount || 0).toFixed(0)}
+            </strong>
+          </div>
 
-          <div className="text-center mt-4">
+          <div className="amount-row d-flex justify-content-between align-items-center mb-2 text-secondary">
+            <span>CGST (2.5%)</span>
+            <strong className="text-dark fw-medium">
+              ₹{(Number(bill.tax_amount || 0) / 2).toFixed(0)}
+            </strong>
+          </div>
+          <hr />
+          <div className="amount-row total-row d-flex justify-content-between align-items-center mb-2 text-secondary">
+            <span>Total</span>
+            <strong className="text-dark fw-medium">₹{Number(bill.grand_total || 0).toFixed(0)}</strong>
+          </div>
+        </div>
 
+        {/* DISCOUNT */}
+        <div className="discount-section mt-3">
+          <div className="section-label text-secondary mb-2 fs-6">
+            %  Discount
+          </div>
+          <div className="discount-options d-flex gap-2">
             <button
-              className="btn btn-success me-3"
-              onClick={() => window.print()}
+              type="button"
+              className="discount-btn active flex-fill border bg-white rounded-5 text-secondary"
             >
-              <FaPrint className="me-2" />
-              Print Bill
+              None
             </button>
 
-            <button className="btn btn-secondary">
-              <FaReceipt className="me-2" />
-              Download PDF
+            <button
+              type="button"
+              className="discount-btn flex-fill border bg-white rounded-5 text-secondary"
+            > 5%
+            </button>
+
+            <button
+              type="button"
+              className="discount-btn flex-fill border bg-white rounded-5 text-secondary"
+            > 10%
+            </button>
+
+            <button
+              type="button"
+              className="discount-btn flex-fill border bg-white rounded-5 text-secondary"
+            > 15%
+            </button>
+          </div>
+
+        </div>
+
+        {/* PAYMENT METHOD */}
+        <div className="payment-section mt-3">
+          <div className="section-label text-secondary mb-2 fs-6">
+            Payment method
+          </div>
+          <div className="payment-options d-flex gap-2">
+            <button
+              type="button"
+              className="payment-btn rounded-5 flex-fill border bg-white  d-flex flex-column align-items-center justify-content-center"
+              style={{ height: "75px" }}>
+              <FaQrcode size={28} />
+              <span>UPI</span>
+            </button>
+
+            <button
+              type="button"
+              className="payment-btn flex-fill border bg-white  d-flex flex-column align-items-center justify-content-center"
+              style={{ height: "75px" }} >
+              <FaCreditCard size={28} />
+              <span>Card</span>
+            </button>
+
+            <button
+              type="button"
+              className="payment-btn  flex-fill border bg-white  d-flex flex-column align-items-center justify-content-center"
+              style={{ height: "75px" }}>
+              <FaMoneyBillWave size={28} />
+              <span>Cash</span>
             </button>
 
           </div>
 
         </div>
+
+        {/* COLLECT BUTTON */}
+        <button
+          type="button"
+          className="collect-btn bg-blue w-100 border-0 rounded-3 mt-3  text-white fw-bold" style={{ height: "50px" }}
+          onClick={handlePayment}
+          disabled={bill.payment_status === "Paid"}
+        >
+          {bill.payment_status === "Paid"
+            ? "Payment Completed"
+            : `Collect ₹${Number(bill.grand_total || 0).toFixed(0)}`
+          }
+        </button>
 
       </div>
     </div>
