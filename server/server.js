@@ -1,11 +1,12 @@
-const PORT = process.env.PORT || 5000;
 require("dotenv").config({ quiet: true });
+const PORT = process.env.PORT || 5000;
 
 const express = require("express");
 const { connectDB } = require("./config/db");
 const cors = require("cors");
 const morgan = require("morgan");
 const helmet = require("helmet");
+const path = require("path");
 const INDEX_ROUTE = require("./routes/indexRoutes");
 const errorHandler = require("./middleware/error.middleware");
 const notFound = require("./middleware/notFound");
@@ -20,6 +21,15 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
 }));
 
+
+app.use(
+    "/uploads",
+    express.static(path.join(__dirname, "uploads"), {
+        setHeaders: (res) => {
+            res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+        }
+    })
+);
 app.use(morgan("dev"));
 
 app.use(express.json());

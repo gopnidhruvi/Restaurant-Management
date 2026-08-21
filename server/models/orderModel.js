@@ -8,9 +8,20 @@ const orderSchema = new mongoose.Schema(
       required: true
     },
 
+    waiting_entry_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "WaitingEntry",
+      default: null
+    },
+    
     customer_name: {
       type: String,
       default: ""
+    },
+
+    token_number: {
+      type: String,
+      required: true
     },
 
     waiter_id: {
@@ -72,7 +83,7 @@ const orderSchema = new mongoose.Schema(
 
     order_status: {
       type: String,
-      enum: [ 
+      enum: [
         "Pending",
         "Preparing",
         "Ready",

@@ -1,18 +1,8 @@
 const waitingEntryModel = require("../models/waitingEntryModel");
 const tableModel = require("../models/tableModel");
 const customerModel = require("../models/customerModel");
-
-// Helper: generate token number
-const generateToken = async () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const count = await waitingEntryModel.countDocuments({
-        createdAt: { $gte: today }
-    });
-
-    return `TKN-${String(count + 1).padStart(3, "0")}`;
-};
+const orderModel = require("../models/orderModel");
+const { generateToken } = require("../utils/counter");
 
 // Add to Waiting List
 exports.addToWaiting = async (req, res, next) => {
@@ -125,6 +115,7 @@ exports.seatCustomer = async (req, res, next) => {
     try {
         const { table_id } = req.body;
 
+        // Find waiting entry
         const entry = await waitingEntryModel.findById(req.params.id);
 
         if (!entry || entry.is_deleted) {
@@ -134,6 +125,7 @@ exports.seatCustomer = async (req, res, next) => {
             });
         }
 
+        // Customer must be Waiting
         if (entry.status !== "Waiting") {
             return res.status(400).json({
                 success: false,
@@ -141,44 +133,69 @@ exports.seatCustomer = async (req, res, next) => {
             });
         }
 
-        // Check table availability
-        if (table_id) {
-            const table = await tableModel.findById(table_id);
-
-            if (!table) {
-                return res.status(404).json({
-                    success: false,
-                    message: "Table not found"
-                });
-            }
-
-            if (table.status !== "available") {
-                return res.status(400).json({
-                    success: false,
-                    message: "Table is not available"
-                });
-            }
-            // Check table capacity
-            if (entry.party_size > table.capacity) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Table capacity is not enough"
-                });
-            }
-            await tableModel.findByIdAndUpdate(table_id,
-                { status: "occupied", customer_name: entry.customer_name });
+        // Table is required
+        if (!table_id) {
+            return res.status(400).json({
+                success: false,
+                message: "Table ID is required"
+            });
         }
 
+        // Find table
+        const table = await tableModel.findById(table_id);
+
+        if (!table) {
+            return res.status(404).json({
+                success: false,
+                message: "Table not found"
+            });
+        }
+
+        // Check table availability
+        if (table.status !== "available") {
+            return res.status(400).json({
+                success: false,
+                message: "Table is not available"
+            });
+        }
+
+        // Check table capacity
+        if (entry.party_size > table.capacity) {
+            return res.status(400).json({
+                success: false,
+                message: "Table capacity is not enough"
+            });
+        }
+
+        // Occupy table and save customer name
+        await tableModel.findByIdAndUpdate(
+            table_id,
+            {
+                status: "occupied",
+                customer_name: entry.customer_name
+            }
+        );
+
+        // Update waiting entry
         entry.status = "Seated";
-        entry.table_id = table_id || undefined;
+        entry.table_id = table_id;
         entry.seated_at = new Date();
+
         await entry.save();
 
         res.status(200).json({
             success: true,
             message: "Customer seated successfully",
-            data: entry
+            data: {
+                waiting_entry_id: entry._id,
+                customer_name: entry.customer_name,
+                token_number: entry.token_number,
+                table_id: entry.table_id,
+                status: entry.status,
+                seated_at: entry.seated_at
+            }
         });
+
     } catch (err) {
         next(err);
     }

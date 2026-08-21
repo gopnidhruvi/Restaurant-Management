@@ -3,7 +3,7 @@ const menuitemsModel = require("../models/menuitemsModel");
 const orderModel = require("../models/orderModel");
 const tableModel = require("../models/tableModel");
 const userModel = require("../models/userModel");
-const { getNextNumber } = require("../utils/counter");
+const { getNextNumber, generateToken } = require("../utils/counter");
 
 exports.createOrder = async (req, res, next) => {
     try {
@@ -11,6 +11,7 @@ exports.createOrder = async (req, res, next) => {
             table_id,
             waiter_id,
             customer_name,
+            waiting_entry_id,
             order_type,
             discount = 0,
             notes,
@@ -23,8 +24,41 @@ exports.createOrder = async (req, res, next) => {
             throw error = new Error("Table not found");
             error.statusCode = 404;
         }
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            const error = new Error("At least one order item is required");
+            error.statusCode = 400;
+            throw error;
+        }
 
-        const customerName = customer_name || table.customer_name || "";
+        let finalTokenNumber;
+        let finalCustomerName = customer_name || "";
+
+        if (waiting_entry_id) {
+            finalTokenNumber = await generateToken();
+            const waitingEntry = await waitingEntryModel.findById(
+                waiting_entry_id
+            );
+
+            if (!waitingEntry || waitingEntry.is_deleted) {
+                const error = new Error("Waiting entry not found");
+                error.statusCode = 404;
+                throw error;
+            }
+
+            if (waitingEntry.status !== "Seated") {
+                const error = new Error(
+                    "Customer must be seated before creating order"
+                );
+                error.statusCode = 400;
+                throw error;
+            }
+
+            finalTokenNumber = waitingEntry.token_number;
+            finalCustomerName = waitingEntry.customer_name;
+        } else {
+            finalTokenNumber = await generateToken();
+        }
+
         if (waiter_id) {
             const waiter = await userModel.findOne({
                 _id: waiter_id,
@@ -59,7 +93,6 @@ exports.createOrder = async (req, res, next) => {
         let totalAmount = 0;
 
         for (const item of items) {
-
             const menuItem = await menuitemsModel.findById(item.menu_item_id);
 
             if (!menuItem) {
@@ -86,8 +119,10 @@ exports.createOrder = async (req, res, next) => {
         const orderNumber = await getNextNumber("order");
         const order = await orderModel.create({
             table_id,
+            waiting_entry_id: waiting_entry_id || null,
             waiter_id,
-            customer_name: customerName,
+            customer_name: finalCustomerName,
+            token_number: finalTokenNumber,
             order_number: `ORD-${orderNumber}`,
             order_type,
             items: orderItems,
@@ -208,7 +243,11 @@ exports.addItemsToOrder = async (req, res, next) => {
         let addedAmount = 0;
 
         for (const item of items) {
-
+            if (!item.quantity || item.quantity <= 0) {
+                const error = new Error("Quantity must be greater than 0");
+                error.statusCode = 400;
+                throw error;
+            }
             const menuItem = await menuitemsModel.findById(item.menu_item_id);
 
             if (!menuItem) {
@@ -226,7 +265,8 @@ exports.addItemsToOrder = async (req, res, next) => {
                 price: menuItem.price,
                 quantity: item.quantity,
                 total,
-                is_sent_to_kitchen: false
+                is_sent_to_kitchen: false,
+                kitchen_status: "Pending"
             });
             addedAmount += total;
         }
@@ -348,8 +388,7 @@ exports.sendToKitchen = async (req, res, next) => {
         const pendingItems = order.items.filter(
             item => !item.is_sent_to_kitchen
         );
-        console.log("ORDER ITEMS:", order.items);
-        console.log("PENDING ITEMS:", pendingItems);
+
         if (pendingItems.length === 0) {
             const error = new Error(
                 "No new items to send to kitchen"
@@ -381,16 +420,16 @@ exports.sendToKitchen = async (req, res, next) => {
         // Mark these items as sent
         pendingItems.forEach(item => {
             item.is_sent_to_kitchen = true;
+            item.kitchen_status = "Pending";
         });
 
         await order.save();
 
         res.status(200).json({
             success: true,
-            message: "New items sent to kitchen successfully",
+            message: "Items sent to kitchen successfully",
             data: kitchenSlip
         });
-
     } catch (err) {
         next(err);
     }

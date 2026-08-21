@@ -35,19 +35,13 @@ exports.generateBill = async (req, res, next) => {
             error.statusCode = 400;
             throw error;
         }
-
         // Billing Calculations
         const subTotal = order.total_amount;
         const discountAmount = order.discount;
-
         const taxPercent = 1;
-
         const taxableAmount = Math.max(0, subTotal - discountAmount);
-
         const taxAmount = Number(((taxableAmount * taxPercent) / 100).toFixed(2));
-
         const grandTotal = Number((taxableAmount + taxAmount).toFixed(2));
-
         const billNumber = await getNextNumber("bill");
         const bill = await billModel.create({
             order_id,
@@ -77,43 +71,35 @@ exports.generateBill = async (req, res, next) => {
 exports.confirmPayment = async (req, res, next) => {
     try {
         const { payment_method } = req.body;
-
         const bill = await billModel.findById(req.params.id);
-
         if (!bill || bill.is_deleted) {
             return res.status(404).json({
                 success: false,
                 message: "Bill not found"
             });
         }
-
         if (bill.payment_status === "Paid") {
             return res.status(400).json({
                 success: false,
                 message: "Bill already paid"
             });
         }
-
         bill.payment_status = "Paid";
         if (payment_method) {
             bill.payment_method = payment_method;
         }
         await bill.save();
-
         // Update order payment status and mark table available
         const order = await orderModel.findById(bill.order_id);
-
         if (order) {
             order.payment_status = "Paid";
             order.order_status = "Completed";
             await order.save();
-
             if (order.table_id) {
                 await tableModel.findByIdAndUpdate(
                     order.table_id,
                     { status: "Cleaning" }
                 );
-
                 setTimeout(async () => {
                     try {
                         await tableModel.findByIdAndUpdate(
